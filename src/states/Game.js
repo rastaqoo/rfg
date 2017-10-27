@@ -4,21 +4,14 @@ import Platform from '../sprites/Platform'
 import Kachel from '../sprites/Kachel'
 import config from '../config'
 import GameLayout from '../layout/GameLayout'
+import GameLogic  from '../logic/GameLogic'
+import GameComponentFactory from '../factory/GameComponentFactory'
 
 export default class extends Phaser.State {
 
   init () {
 
-    this.speedUpEvery = 10;
-    this.speedUpFactor = 1.2;
-    this.velocity = 180;
-    this.lastTime = this.game.time.time;
-
-    this.blockCycles = 0;
-
-    this.collisions = 0;
-
-    this.score = 0;
+   GameLogic.startGame();
 
   }
 
@@ -45,7 +38,7 @@ export default class extends Phaser.State {
     this.platform = new Platform({
       game: this.game,
       x: this.world.centerX,
-      y: 600,
+      y: GameLayout.getScaledY(config.infoPanelHeight + config.flyzonePanelHeight - config.platformHeight/2),
       asset: 'platform'
     })
 
@@ -58,25 +51,36 @@ export default class extends Phaser.State {
     this.platform.enableBody = true;
     this.platform.body.immovable = true;
 
-    const bannerText = 'Yoonai\r\n'
-    this.banner = this.add.text(this.world.centerX, this.game.height - 80, bannerText)
-    this.banner.font = 'Bangers'
-    this.banner.padding.set(10, 16)
-    this.banner.fontSize = 40
-    this.banner.fill = '#77BFA3'
-    this.banner.smoothed = false
-    this.banner.anchor.setTo(0.5)
-    this.banner.stroke = '#000000';
-    this.banner.strokeThickness = 6;
-    this.banner.fill = '#43d637';
-    this.banner.lineSpacing = -30;
+    this.scoreText = GameComponentFactory.getText(
+      this.game,
+      GameLayout.getScaledX(config.laneBorderLeftRight), 
+      GameLayout.getScaledY(5), 
+      'Score');  
 
+    this.livesText = GameComponentFactory.getText(
+        this.game,
+        GameLayout.getScaledX(config.laneBorderLeftRight), 
+        GameLayout.getScaledY(25), 
+        'Lives');  
+
+    this.coinsText = GameComponentFactory.getText(
+        this.game,
+        GameLayout.getScaledX(config.laneBorderLeftRight), 
+        GameLayout.getScaledY(45), 
+        'Coins');  
+
+    this.scoreText = this.add.existing(this.scoreText)
+    this.livesText = this.add.existing(this.livesText)
+    this.coinsText = this.add.existing(this.coinsText)
   }
 
   update () 
   {
 
-    this.banner.text = "Score: "+this.score;
+    this.scoreText.text = "Score: "+GameLogic.getScore();
+    this.livesText.text = "Lives: "+GameLogic.getLives();
+    this.coinsText.text = "Coins: "+GameLogic.getCoins();
+    
 
     this.game.physics.arcade.collide(this.platform, this.kacheln, this.collisionHandle.bind(this), null, this);
     this.game.physics.arcade.collide(this.mushroom, this.kacheln, this.collisionHandle.bind(this), null, this);
@@ -87,17 +91,7 @@ export default class extends Phaser.State {
 
     var bounds = this.kacheln.getBounds();
 
-    if (bounds.y > Math.round(Math.random() * 10)+5 || bounds.height == 0) {
-
-      this.blockCycles++;
-
-      // more speed, one cycle break
-      if (this.blockCycles % this.speedUpEvery == 0) 
-      {
-        this.velocity = this.velocity * this.speedUpFactor;
-        this.speedUpEvery = 2 * this.speedUpEvery;
-      }
-      else {
+    if (GameLogic.shouldFireNewBlocks(bounds)) {
 
         var laneIdx = Math.floor(Math.random() * 5);
 
@@ -147,22 +141,21 @@ export default class extends Phaser.State {
             c.scale.x = scale.x;
             c.inputEnabled = true;
             c.events.onInputDown.add(this.clickedMush, this);
-            c.body.velocity.setTo(0,this.velocity + Math.random()*this.velocity/5);
+            c.body.velocity.setTo(0,GameLogic.getVelocity());
             // c.body.collideWorldBounds = true;
             c.body.bounce = 1;
 
         }
       }
-    }
   }
 
   collisionHandle(A, B) {
     console.log("collision: "+A+" "+B)
     B.kill();
 
-    this.collisions++;
+    GameLogic.blockHitPlatform();
 
-    if (this.collisions>5) 
+    if (GameLogic.isGameOver()) 
     {
       this.state.start('GameOver')
     }
@@ -172,7 +165,7 @@ export default class extends Phaser.State {
   collisionKachel(A, B) {
     console.log("collision: "+A+" "+B)
     let x = 0;
-    let y = this.velocity + Math.random()*this.velocity/5;
+    let y = GameLogic.getVelocity();
 
     if (A.y > B.y) 
     {
@@ -191,7 +184,7 @@ export default class extends Phaser.State {
   clickedMush(mush) 
   {
     mush.kill();
-    this.score+=1;
+    GameLogic.hitBlock();
   }
 
   render () {
@@ -202,12 +195,14 @@ export default class extends Phaser.State {
       this.lastTime = this.game.time.time;
 
       // this.game.debug.text("sue: "+this.speedUpEvery, 32, 32)
+      /*
       this.game.debug.text('sx: ' + window.screen.width, 32, 32, config.greenColor);
       this.game.debug.text('sy: ' + window.screen.height, 32, 42,config.greenColor);
       this.game.debug.text('wx: ' + window.innerWidth, 32, 52,config.greenColor);
       this.game.debug.text('wy: ' + window.innerHeight, 32, 62,config.greenColor);
       this.game.debug.text('ex: ' + this.game.canvas.parentNode.clientWidth, 32, 72,config.greenColor);
       this.game.debug.text('ey: ' + this.game.canvas.parentNode.clientHeight, 32, 82,config.greenColor);
+      */
     }
   }
 

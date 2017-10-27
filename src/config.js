@@ -7,7 +7,14 @@ export default {
   blockHeight: 128,
   laneDistance: 2,
   laneBorderLeftRight: 16,
-  infoPanelHeight: 50,
   localStorageName: 'phaseres6webpack',
-  greenColor: '#43d637'
+  greenColor: '#43d637',
+  platformHeight: 20,
+  platformWidth: 350,
+  // vertical divisions
+  // top: info ()
+  infoPanelHeight: 50,
+  flyzonePanelHeight: 540,
+  buttonPanelHeight: 50,
+  livesAtStart: 4
 }

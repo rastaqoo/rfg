@@ -1,6 +1,8 @@
 import Phaser from 'phaser'
 import { centerGameObjects } from '../utils'
-import GameLayout from '../layout/GameLayout'
+import GameLayout            from '../layout/GameLayout'
+import GameLogic             from '../logic/GameLogic'
+import GameComponentFactory  from '../factory/GameComponentFactory'
 
 export default class extends Phaser.State {
   init () {
@@ -13,19 +15,11 @@ export default class extends Phaser.State {
   }
 
   create () {
-    const bannerText = 'Game Over\r\n(Score: '+this.state.states['Game'].score+')'
-    let banner = this.add.text(this.world.centerX, this.world.centerY, bannerText)
-    banner.font = 'Bangers'
-    banner.padding.set(10, 16)
-    banner.fontSize = 40
-    banner.fill = '#77BFA3'
-    banner.smoothed = false
-    banner.anchor.setTo(0.5)
-    banner.inputEnabled = true;
-    banner.stroke = '#000000';
-    banner.strokeThickness = 6;
-    banner.fill = '#43d637';
-    banner.events.onInputDown.add(this.continuePlay, this);
+    const bannerText = 'Game Over\r\n(Score: '+GameLogic.getScore()+')';
+    var textComponent = GameComponentFactory.getText(this.game,this.world.centerX, this.world.centerY, bannerText)
+    var b = this.add.existing(textComponent);
+    b.inputEnabled = true;
+    b.events.onInputDown.add(this.continuePlay, this);
 
   }
 
