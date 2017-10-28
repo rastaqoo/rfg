@@ -11,7 +11,15 @@ export default class extends Phaser.State {
 
   init () {
 
-   GameLogic.startGame();
+   var me = this;
+
+   GameLogic.startGame({
+     onGameOver: function () {
+                    me.state.start('GameOver')
+                 },
+     scale: GameLayout.getScale()
+  });
+   
 
   }
 
@@ -26,14 +34,24 @@ export default class extends Phaser.State {
 
   create () {
     
+    // background image
     this.game.add.image(game.world.centerX, game.world.centerY, 'kleckse').anchor.set(0.5);
     
-    var graphics = game.add.graphics(0,0);
+    this.gameBackground = game.add.graphics(0,0);
 
-    graphics.beginFill(0xffffff);
-    // graphics.drawRect(14, 14, game.world.width - 28, game.world.height - 28);
-    graphics.endFill();
+    this.gameBackground.beginFill(0xff0000);
+    this.gameBackground.drawRect(
+      0, 0, 
+      GameLayout.getScaledX(config.gameWidth), 
+      GameLayout.getScaledY(config.gameHeight));
+    this.gameBackground.endFill();
 
+    this.gameBackground.alpha = 0;
+    this.gameBackground.inputEnabled = true;
+    this.gameBackground.input.priorityID = 0;
+    this.gameBackground.events.onInputDown.add(this.clickedBackground, this);
+
+    this.addBackgroundTween();
 
     this.platform = new Platform({
       game: this.game,
@@ -41,6 +59,9 @@ export default class extends Phaser.State {
       y: GameLayout.getScaledY(config.infoPanelHeight + config.flyzonePanelHeight - config.platformHeight/2),
       asset: 'platform'
     })
+
+    this.platform.scale.x = GameLayout.getScale().x;
+    this.platform.scale.y = GameLayout.getScale().y;
 
     this.kacheln = this.game.add.physicsGroup();
     this.game.physics.enable(this.kacheln, Phaser.Physics.ARCADE);
@@ -140,6 +161,7 @@ export default class extends Phaser.State {
             c.scale.y = scale.y;
             c.scale.x = scale.x;
             c.inputEnabled = true;
+            c.input.priorityID = 0;
             c.events.onInputDown.add(this.clickedMush, this);
             c.body.velocity.setTo(0,GameLogic.getVelocity());
             // c.body.collideWorldBounds = true;
@@ -154,12 +176,6 @@ export default class extends Phaser.State {
     B.kill();
 
     GameLogic.blockHitPlatform();
-
-    if (GameLogic.isGameOver()) 
-    {
-      this.state.start('GameOver')
-    }
-
   }
 
   collisionKachel(A, B) {
@@ -187,6 +203,16 @@ export default class extends Phaser.State {
     GameLogic.hitBlock();
   }
 
+  clickedBackground() 
+  {
+    GameLogic.hitBackground();
+    if (this.gameBackgroundTween) {
+      this.gameBackgroundTween.start();
+    }
+    
+      console.log("bg clicked");
+  }
+
   render () {
     if (__DEV__) {
 
@@ -206,6 +232,22 @@ export default class extends Phaser.State {
     }
   }
 
- 
+  addBackgroundTween() 
+  {
+    console.log("add bg tween")
+    this.gameBackgroundTween =  
+    game.add.
+      tween(this.gameBackground).
+      from(
+        { alpha: 1 }, 
+        200, 
+        "Linear", 
+        false, 
+        0, 
+        0);
+    this.gameBackgroundTween.onComplete.addOnce(this.addBackgroundTween, this);
+  }
+
+
 
 }

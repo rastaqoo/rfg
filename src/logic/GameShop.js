@@ -1,26 +1,22 @@
 import Phaser from 'phaser'
 import config from '../config'
 
-class GameLogic {
+class GameShop {
 
   constructor() 
   {
     this.storage = window.localStorage;
   }
 
-  // initializes all game variables
-  // coins are read from localstorage
-  startGame({onGameOver, scale}) {
+  startGame() {
 
     this.lives = config.livesAtStart;
     this.score = 0;
     this.speedUpEvery = 10;
     this.speedUpFactor = 1.2;
-    this.velocity = 180 * scale.y;
+    this.velocity = 180;
     this.blockCycles = 0;
     this.coins = 0;
-    this.onGameOver = onGameOver;
-    this.scale = scale;
 
     var coinsRead = this.storage.getItem(config.localStorageCoins);
 
@@ -35,23 +31,6 @@ class GameLogic {
   {
     if (this.lives>0) {
       this.lives -= 1;
-    }
-    this.checkGameOver();
-  }
-
-  hitBackground() 
-  {
-    if (this.lives>0) {
-      this.lives -= 1;
-    }
-    this.checkGameOver();
-  }
-
-  checkGameOver() 
-  {
-    if (this.isGameOver()) 
-    {
-      this.onGameOver();
     }
   }
 
@@ -117,4 +96,4 @@ class GameLogic {
 
 }
 
-export default new GameLogic();
+export default new GameShop();
