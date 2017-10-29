@@ -3,6 +3,7 @@ import { centerGameObjects } from '../utils'
 import GameLayout            from '../layout/GameLayout'
 import GameLogic             from '../logic/GameLogic'
 import GameComponentFactory  from '../factory/GameComponentFactory'
+import config from '../config'
 
 export default class extends Phaser.State {
   init () {
@@ -12,14 +13,37 @@ export default class extends Phaser.State {
   }
 
   preload () {
+    this.load.image('kleckse', './assets/images/bg_kleckse.png')
   }
 
   create () {
-    const bannerText = 'Game Over\r\n(Score: '+GameLogic.getScore()+')';
-    var textComponent = GameComponentFactory.getText(this.game,this.world.centerX, this.world.centerY, bannerText)
+    this.game.add.image(game.world.centerX, game.world.centerY, 'kleckse').anchor.set(0.5);
+    const bannerText = 'Game Over \r\n(Score: '+GameLogic.getScore()+') ';
+    var textComponent = GameComponentFactory.getText(
+      { 
+        game: this.game,
+        x: this.world.centerX, 
+        y: this.world.centerY, 
+        text: bannerText,
+        anchor: 0.5,
+        fontSize: GameLayout.getScaledY(config.gameOverFontSize)
+      })
     var b = this.add.existing(textComponent);
     b.inputEnabled = true;
-    b.events.onInputDown.add(this.continuePlay, this);
+    b.events.onInputDown.add(this.continueGame, this);
+
+    this.backText = GameComponentFactory.getText(
+      {
+      game: this.game,
+      x: game.world.centerX, 
+      y: GameLayout.getScaledY(config.gameHeight-80), 
+      text: 'Back to Menu ',
+      anchor: 0.5
+      });  
+
+    this.backText = this.add.existing(this.backText);
+    this.backText.inputEnabled=true;
+    this.backText.events.onInputDown.add(this.continueGame.bind(this));
 
   }
 
@@ -33,19 +57,14 @@ export default class extends Phaser.State {
 
   }
 
-  continuePlay() 
+  continueGame() 
   {
-    this.state.start('Game');
+    this.state.start('Menu');
   }
 
 
   render () {
-    if (__DEV__) {
-
-       var scale = GameLayout.getScale();
-       this.game.debug.text("sx: "+scale.x, 32, 32)
-       this.game.debug.text("sy: "+scale.y, 32, 42)
-    }
+    
   }
 
 }

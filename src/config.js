@@ -7,14 +7,30 @@ export default {
   blockHeight: 128,
   laneDistance: 2,
   laneBorderLeftRight: 16,
-  localStorageName: 'phaseres6webpack',
+  localStorageCoins: 'rfgCoins',
+  localStoragePrefix: 'rfg.',
   greenColor: '#43d637',
   platformHeight: 20,
   platformWidth: 350,
   // vertical divisions
   // top: info ()
   infoPanelHeight: 50,
-  flyzonePanelHeight: 540,
-  buttonPanelHeight: 50,
-  livesAtStart: 4
+  flyzonePanelHeight: 530,
+  buttonPanelHeight: 60,
+  livesAtStart: 4,
+
+  // shop configuration
+  coinsPerLife: 100, //00,
+  coinsPerFreezer: 50, //00,
+  coinsPerDoubler: 50, //00,
+
+  // shop layout
+  shopHeaderPanelHeight: 200,
+  shopItemsPanelHeight: 300,
+  shopConfirmPanelHeigt: 140,
+  
+  // font sizes
+  defaultFontSize: 25,
+  menuFontSize: 80,
+  gameOverFontSize: 60
 }

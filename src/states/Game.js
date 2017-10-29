@@ -73,26 +73,38 @@ export default class extends Phaser.State {
     this.platform.body.immovable = true;
 
     this.scoreText = GameComponentFactory.getText(
-      this.game,
-      GameLayout.getScaledX(config.laneBorderLeftRight), 
-      GameLayout.getScaledY(5), 
-      'Score');  
+      {
+      game: this.game,
+      x: GameLayout.getScaledX(config.laneBorderLeftRight), 
+      y: GameLayout.getScaledY(5), 
+      text: 'Score',
+      anchor: 0.0
+      });  
 
-    this.livesText = GameComponentFactory.getText(
-        this.game,
-        GameLayout.getScaledX(config.laneBorderLeftRight), 
-        GameLayout.getScaledY(25), 
-        'Lives');  
+    this.livesText = GameComponentFactory.getText({
+        game: this.game,
+        x: GameLayout.getScaledX(config.laneBorderLeftRight), 
+        y: GameLayout.getScaledY(25), 
+        text: 'Lives',
+        anchor: 0.0
+      });  
 
-    this.coinsText = GameComponentFactory.getText(
-        this.game,
-        GameLayout.getScaledX(config.laneBorderLeftRight), 
-        GameLayout.getScaledY(45), 
-        'Coins');  
+    this.coinsText = GameComponentFactory.getText({
+        game: this.game,
+        x: GameLayout.getScaledX(config.laneBorderLeftRight), 
+        y: GameLayout.getScaledY(45), 
+        text: 'Coins',
+        anchor: 0.0
+    });  
 
     this.scoreText = this.add.existing(this.scoreText)
     this.livesText = this.add.existing(this.livesText)
     this.coinsText = this.add.existing(this.coinsText)
+
+    // add buttons to fire: freezer, doubler and more lives
+
+
+
   }
 
   update () 

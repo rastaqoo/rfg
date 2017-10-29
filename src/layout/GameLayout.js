@@ -19,7 +19,9 @@ class GameLayout {
 
     if (scaleY>1.0) 
     {
-      this.deviceWidth /= scaleY;
+      if (scaleY>1.3) {
+        this.deviceWidth /= scaleY;
+      }
       this.deviceHeight = this.height;
     }
 
