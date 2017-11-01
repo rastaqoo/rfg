@@ -10,6 +10,7 @@ export default {
   localStorageCoins: 'rfgCoins',
   localStoragePrefix: 'rfg.',
   greenColor: '#43d637',
+  greenColorBytes: 0x43d637,
   platformHeight: 20,
   platformWidth: 350,
   // vertical divisions

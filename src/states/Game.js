@@ -25,10 +25,14 @@ export default class extends Phaser.State {
 
   preload () {
 
-    this.load.image('kachel'  , 'assets/images/kachel_green_black.png')
+    // this.load.image('kachel'  , 'assets/images/kachel_green_black.png')
     this.load.image('platform'  , 'assets/images/lower_platform_green.png')
     this.load.image('kleckse', './assets/images/bg_kleckse.png')
 
+    // buttons
+    this.load.image('x2', './assets/images/x2.png')
+    this.load.image('lives', './assets/images/lives.png')
+    this.load.image('freeze', './assets/images/freeze.png')
 
   }
 
@@ -102,17 +106,103 @@ export default class extends Phaser.State {
     this.coinsText = this.add.existing(this.coinsText)
 
     // add buttons to fire: freezer, doubler and more lives
+    var rowidx=0;
 
+    this.livesAction = GameComponentFactory.createActionElement(
+      {
+        state: this,
+        game: game,
+        rowIdx: rowidx,
+        iconId: 'lives',
+        countText: ': 0 ',
+        onClick: this.getLife.bind(this)
+      }
+    );  
 
+    // freezes
+    rowidx++;
+    this.freezesAction = GameComponentFactory.createActionElement(
+      {
+        state: this,
+        game: game,
+        rowIdx: rowidx,
+        iconId: 'freeze',
+        countText: ': 0 ',
+        onClick: this.getFreezer.bind(this)
+      }
+    ); 
 
+    // doublers
+    rowidx++;
+    this.doublerAction = GameComponentFactory.createActionElement(
+      {
+        state: this,
+        game: game,
+        rowIdx: rowidx,
+        iconId: 'x2',
+        countText: ': 0 ',
+        onClick: this.getDoubler.bind(this)
+      }
+    ); 
   }
+
+  getLife() 
+  {
+    console.log("get life");
+    GameLogic.putLife();
+  }
+
+  getDoubler() 
+  {
+    console.log("get doubler");
+    GameLogic.putDoubler();
+  }
+
+  getFreezer() 
+  {
+    console.log("get freezer");
+    GameLogic.putFreezer(this.kacheln);
+  }  
+
+  getKachelTexture() {
+
+        if (!this.kachelTexture) 
+        {
+          console.log("create kachel texture");
+          var graphics = this.game.add.graphics(0, 0);
+      
+          graphics.beginFill(0x43d637);
+          graphics.lineStyle(2, 0x000000, 1);
+          
+          graphics.moveTo(0,0);
+          graphics.lineTo(0, 128);
+          graphics.lineTo(64, 128);
+          graphics.lineTo(64, 0);
+          graphics.lineTo(0, 0);
+          graphics.endFill();
+          this.kachelTexture = graphics.generateTexture();
+          graphics.destroy();
+        }
+        else
+        {
+          console.log("using pre created kachel texture");
+        }
+
+        return this.kachelTexture;
+  }
+
 
   update () 
   {
 
-    this.scoreText.text = "Score: "+GameLogic.getScore();
-    this.livesText.text = "Lives: "+GameLogic.getLives();
-    this.coinsText.text = "Coins: "+GameLogic.getCoins();
+    // 
+    GameLogic.tick(this.game.time.time);
+
+    this.updateActions();
+
+    this.scoreText.text = "Score: "+GameLogic.getScore()+' ';
+    this.livesText.text = "Lives: "+GameLogic.getLives()+' ';
+    this.coinsText.text = "Coins: "+GameLogic.getCoins()+' ';
     
 
     this.game.physics.arcade.collide(this.platform, this.kacheln, this.collisionHandle.bind(this), null, this);
@@ -165,7 +255,7 @@ export default class extends Phaser.State {
                   // -> we have to move it by half of width 
                   config.blockWidth/2),
               y: GameLayout.getScaledY(-config.blockHeight), 
-              asset: "kachel"
+              asset: this.getKachelTexture()
             });
 
             var c = this.kacheln.add(c);
@@ -181,6 +271,18 @@ export default class extends Phaser.State {
 
         }
       }
+  }
+
+  updateActions() 
+  {
+    this.doublerAction.setCount(GameLogic.getCount("doubler"));    
+    this.doublerAction.setEnabled(GameLogic.canWePut("doubler"));
+    
+    this.freezesAction.setCount(GameLogic.getCount("freezer"));    
+    this.freezesAction.setEnabled(GameLogic.canWePut("freezer"));
+    
+    this.livesAction.setCount(GameLogic.getCount("life"));    
+    this.livesAction.setEnabled(GameLogic.canWePut("life"));
   }
 
   collisionHandle(A, B) {

@@ -12,6 +12,10 @@ class GameLogic {
   // coins are read from localstorage
   startGame({onGameOver, scale}) {
 
+    // global time
+    this.time = 0;
+
+    // global rest
     this.lives = config.livesAtStart;
     this.score = 0;
     this.speedUpEvery = 10;
@@ -21,7 +25,103 @@ class GameLogic {
     this.onGameOver = onGameOver;
     this.scale = scale;
     this.coins = this.getStorageItemAsInteger(this.getStorageKey("coins"));
+    // freeze
+    this.frozen = false;
+    this.frozenUntil = 0; 
+    this.velocityBeforeFreeze = 0;
+    this.speedUpFactoreBeforeFreeze = 0;
+
+    // double coins
+    this.doubleCoins = false;
+    this.doubleCoinsUntil = 0; 
+    
   }
+
+  tick(timelong) 
+  {
+    // check freeze
+    this.time = timelong;
+    this.checkFrozen();
+    this.checkDoubleCoins();
+  }
+
+
+  /*
+   * DOUBLE COINS
+   */ 
+  checkDoubleCoins() 
+  {
+    if (this.doubleCoins) 
+    {
+      // 20 seconds over -> unfreeze
+      if (this.doubleCoinsUntil < this.time) 
+      {
+        this.disableDoubleCoins();
+      }
+    }
+  }
+
+  enableDoubleCoins()
+  {
+    this.doubleCoinsUntil = this.time + 20000;
+    this.doubleCoins = true;
+  }
+
+  disableDoubleCoins()
+  {
+    this.doubleCoins = false;
+  }
+
+
+  /*
+   * FROZEN
+   */
+  isFrozen() {
+    return this.frozen;
+  }
+
+  checkFrozen() 
+  {
+    if (this.frozen) 
+    {
+      // 20 seconds over -> unfreeze
+      if (this.frozenUntil < this.time) 
+      {
+        this.unfreeze();
+      }
+
+      // no blocks anymore -> unfreeze
+      if (this.frozenGroup) 
+      {
+        if (this.frozenGroup.countLiving() == 0) {
+          this.unfreeze();
+        }
+      }
+
+    }
+  }
+
+  unfreeze() 
+  {
+    this.velocity = this.velocityBeforeFreeze;
+    this.speedUpFactor = this.speedUpFactoreBeforeFreeze;
+    this.frozen = false;
+  }
+
+  freeze(spriteGroup) 
+  {
+
+    this.velocityBeforeFreeze = this.velocity;
+    this.speedUpFactoreBeforeFreeze = this.speedUpFactor;
+    this.velocity = 10;
+    this.frozenGroup = spriteGroup;
+    this.frozenGroup.setAllChildren("body.velocity.y",10);
+    this.speedUpFactor = 1;
+    this.frozenUntil = this.time + 20000;
+    this.frozen = true;
+  }
+
+
 
   blockHitPlatform() 
   {
@@ -49,7 +149,7 @@ class GameLogic {
 
   hitBlock() {
     this.score += 1;
-    this.coins += 10;
+    this.coins += (this.doubleCoins)?20:10;
 
     this.writeStorageItem(this.getStorageKey("coins"),this.coins);
    
@@ -83,6 +183,9 @@ class GameLogic {
 
   shouldFireNewBlocks(blockGroupBounds) 
   {
+    if (this.frozen)
+      return false;
+
 
     if ((blockGroupBounds.y > Math.round(Math.random() * 10)+5 || blockGroupBounds.height == 0)) 
     {
@@ -114,7 +217,7 @@ class GameLogic {
     switch(itemType) 
     {
       case "freezer":
-        if (this.getCoins() > config.coinsPerFreezer) 
+        if (this.getCoins() >= config.coinsPerFreezer) 
         {
           this.coins -= config.coinsPerFreezer;
           this.writeStorageItem(this.getStorageKey("coins"),this.coins);
@@ -122,7 +225,7 @@ class GameLogic {
         }
         break;
       case "life":
-        if (this.getCoins() > config.coinsPerLife) 
+        if (this.getCoins() >= config.coinsPerLife) 
         {
           this.coins -= config.coinsPerLife;
           this.writeStorageItem(this.getStorageKey("coins"),this.coins);
@@ -130,7 +233,7 @@ class GameLogic {
         }
         break;
       case "doubler":
-        if (this.getCoins() > config.coinsPerDoubler) 
+        if (this.getCoins() >= config.coinsPerDoubler) 
         {
           this.coins -= config.coinsPerDoubler;
           this.writeStorageItem(this.getStorageKey("coins"),this.coins);
@@ -144,6 +247,26 @@ class GameLogic {
     return this.getStorageItemAsInteger(this.getStorageKey(itemType));
   }
 
+  canWePut(itemType) {
+    let retval = false;
+    
+    switch(itemType) 
+    {
+      case "freezer":
+        retval = (!this.frozen) && (this.getCount(itemType)>0);
+        break;
+      case "life":
+        retval = (this.getCount(itemType)>0)
+        break;
+      case "doubler":
+        retval = (!this.doubleCoins) && (this.getCount(itemType)>0)
+        break;  
+    }
+
+    return retval;
+  }
+
+
   available(itemType) {
 
     var retVal = false;
@@ -151,19 +274,19 @@ class GameLogic {
     switch(itemType) 
     {
       case "freezer":
-        if (this.getCoins() > config.coinsPerFreezer) 
+        if (this.getCoins() >= config.coinsPerFreezer) 
         {
           retVal = true;
         }
         break;
       case "life":
-        if (this.getCoins() > config.coinsPerLife) 
+        if (this.getCoins() >= config.coinsPerLife) 
         {
           retVal = true;
         }
         break;
       case "doubler":
-        if (this.getCoins() > config.coinsPerDoubler) 
+        if (this.getCoins() >= config.coinsPerDoubler) 
         {
           retVal = true;
         }
@@ -197,6 +320,38 @@ class GameLogic {
     this.storage.setItem(item, value+'');
   }
 
+  putLife() 
+  {
+    var storageKey = this.getStorageKey("life");
+
+    if (this.getCount("life")>0) 
+    {
+      this.writeStorageItem(storageKey, this.getStorageItemAsInteger(storageKey) - 1);
+      this.lives++;
+    }
+  }
+
+  putFreezer(spriteGroup) 
+  {
+    var storageKey = this.getStorageKey("freezer");
+
+    if (this.getCount("freezer")>0) 
+    {
+      this.writeStorageItem(storageKey, this.getStorageItemAsInteger(storageKey) - 1);
+      this.freeze(spriteGroup);
+    }
+  }
+
+  putDoubler() 
+  {
+    var storageKey = this.getStorageKey("doubler");
+
+    if (this.getCount("doubler")>0) 
+    {
+      this.writeStorageItem(storageKey, this.getStorageItemAsInteger(storageKey) - 1);
+      this.enableDoubleCoins();
+    }
+  }
 
 }
 

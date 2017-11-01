@@ -2,6 +2,7 @@ import Phaser from 'phaser'
 import config from '../config'
 import GameLayout from '../layout/GameLayout'
 import ShopLine from '../misc/ShopLine'
+import ActionElement from '../misc/ActionElement'
 
 class GameComponentFactory {
 
@@ -37,6 +38,9 @@ class GameComponentFactory {
       GameLayout.getScaledY(config.infoPanelHeight + line * lineHeight),
       iconId);
     icon.anchor.set(0.5);
+
+    icon.scale.setTo(GameLayout.getScale().x,GameLayout.getScale().y);
+
     var textObject  = this.getText(
       {
       game: game,
@@ -68,10 +72,50 @@ class GameComponentFactory {
         countText: countTextObject,
         onClick: onClick
       });  
+  
 
     return shopLine;
   }
 
+
+  createActionElement({game, state, rowIdx, iconId, countText, onClick}) 
+  {
+
+    var rowSize = 104;
+    var startIconX = 72;
+    var startTextX = startIconX + 14;  
+    var textOffsetY = 10;
+    var iconScale = 0.7;
+
+    var icon = state.add.image(
+      GameLayout.getScaledX( startIconX + rowIdx * rowSize ),
+      GameLayout.getScaledY(config.gameHeight - config.buttonPanelHeight/2 ),
+      iconId);
+    icon.anchor.set(0.5);
+    icon.scale.setTo(GameLayout.getScale().x * iconScale,GameLayout.getScale().y * iconScale);
+
+    var countTextObject  = this.getText(
+      {
+      game: game,
+      x: GameLayout.getScaledX( startTextX + rowIdx * rowSize), 
+      y: GameLayout.getScaledY( config.gameHeight - config.buttonPanelHeight/2 - textOffsetY), 
+      text: countText,
+      anchor: 0.0,
+      anchory: 0.5
+      });
+    countTextObject.fontSize = GameLayout.getScaledY(20);
+    state.add.existing(countTextObject);
+
+    
+    var actionElement = new ActionElement(
+      {
+        icon: icon,
+        countText: countTextObject,
+        onClick: onClick
+      });    
+
+    return actionElement;
+  }
 
 }
 
