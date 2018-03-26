@@ -2,23 +2,36 @@ import Phaser from 'phaser'
 import { centerGameObjects } from '../utils'
 
 export default class extends Phaser.State {
-  init () {}
+  init () {
+
+    this.enterTime = this.game.time.time;
+
+  }
 
   preload () {
-    this.loaderBg = this.add.sprite(this.game.world.centerX, this.game.world.centerY, 'loaderBg')
-    this.loaderBar = this.add.sprite(this.game.world.centerX, this.game.world.centerY, 'loaderBar')
-    centerGameObjects([this.loaderBg, this.loaderBar])
-
-    this.load.setPreloadSprite(this.loaderBar)
     //
     // load your assets
     //
     this.load.image('mushroom', 'assets/images/mushroom2.png')
     this.load.image('kachel'  , 'assets/images/kachel.png')
+    this.load.image('rastaqoo',  'assets/images/rastaqoo_200.png')
     
   }
 
-  create () {
-    this.state.start('Game')
+  create() {
+
+    game.add.image(game.world.centerX, game.world.centerY, 'rastaqoo').anchor.set(0.5);
+  }
+
+  update () {
+
+    console.log('Elapsed: '+(this.game.time.time - this.enterTime))
+    if ((this.game.time.time - this.enterTime) > 3000)
+    {
+
+       this.state.start('Menu');
+
+    }
+
   }
 }

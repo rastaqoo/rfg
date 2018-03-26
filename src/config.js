@@ -21,9 +21,9 @@ export default {
   livesAtStart: 4,
 
   // shop configuration
-  coinsPerLife: 100, //00,
-  coinsPerFreezer: 50, //00,
-  coinsPerDoubler: 50, //00,
+  coinsPerLife: 500, //00,
+  coinsPerFreezer: 250, //00,
+  coinsPerDoubler: 250, //00,
 
   // shop layout
   shopHeaderPanelHeight: 200,
